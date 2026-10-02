@@ -128,11 +128,13 @@ elif page == "Data Exploration":
     col1, col2 = st.columns(2)
     with col1:
         st.write("### Survival Rate by Gender")
-        st.bar_chart(raw_df.groupby('sex')['survived'].mean() * 100)
+        survival_by_gender = (raw_df.groupby('sex')['survived'].mean() * 100).reset_index()
+        st.bar_chart(survival_by_gender, x='sex', y='survived')
     
     with col2:
         st.write("### Survival Rate by Passenger Class")
-        st.bar_chart(raw_df.groupby('class')['survived'].mean() * 100)
+        survival_by_class = (raw_df.groupby('class', observed=False)['survived'].mean() * 100).reset_index()
+        st.bar_chart(survival_by_class, x='class', y='survived')
 
 elif page == "Model Evaluation":
     st.title("📈 Model Charts and Comparisons")
@@ -141,7 +143,7 @@ elif page == "Model Evaluation":
     show_passenger_summary(raw_df)
 
     st.subheader("Accuracy by Model")
-    st.bar_chart(metrics_df.set_index('Model')['Accuracy'])
+    st.bar_chart(metrics_df, x='Model', y='Accuracy')
     st.dataframe(metrics_df.style.format({'Accuracy': '{:.1%}'}), use_container_width=True)
 
     st.subheader("Confusion Matrices")
@@ -165,7 +167,8 @@ elif page == "Model Evaluation":
     sex_chart = X_test[['sex']].copy()
     for name, prediction in test_predictions.items():
         sex_chart[name] = prediction
-    st.bar_chart(sex_chart.groupby('sex').mean(numeric_only=True))
+    sex_chart_grouped = sex_chart.groupby('sex').mean(numeric_only=True).reset_index()
+    st.bar_chart(sex_chart_grouped, x='sex')
 
 elif page == "Prediction":
     st.title("🔮 Make a Prediction")
@@ -208,10 +211,10 @@ elif page == "Prediction":
 
         st.subheader("Prediction Chart")
         prediction_chart = pd.DataFrame({
-            'Model': list(results),
+            'Model': list(results.keys()),
             'Survival prediction': list(results.values()),
-        }).set_index('Model')
-        st.bar_chart(prediction_chart)
+        })
+        st.bar_chart(prediction_chart, x='Model', y='Survival prediction')
             
         # Display results in columns
         cols = st.columns(4)
